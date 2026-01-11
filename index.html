@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mass JS Recon v3 | CyberTechAjju</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@500;900&family=Rajdhani:wght@500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #030303;
+            --card-bg: rgba(20, 20, 20, 0.6);
+            --primary: #00ff41;
+            /* Hacker Green */
+            --primary-dim: rgba(0, 255, 65, 0.1);
+            --accent: #d300c5;
+            /* Neon Purple for contrast */
+            --accent-dim: rgba(211, 0, 197, 0.1);
+            --text-main: #e0e0e0;
+            --text-muted: #888;
+            --border: #333;
+            --font-mono: 'JetBrains Mono', monospace;
+            --font-head: 'Orbitron', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) var(--bg-color);
+        }
+
+        body {
+            font-family: var(--font-mono);
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Animated Background Grid */
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(0, 255, 65, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 65, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -2;
+            perspective: 500px;
+            transform-style: preserve-3d;
+            animation: moveGrid 20s linear infinite;
+        }
+
+        @keyframes moveGrid {
+            0% {
+                transform: translateY(0);
+            }
+
+            100% {
+                transform: translateY(50px);
+            }
+        }
+
+        /* Matrix Overlay */
+        #matrix-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.12;
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* --- Header & Input Section --- */
+        header {
+            text-align: center;
+            padding: 4rem 0 2rem;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 0.5rem;
+        }
+
+        .spin-icon {
+            font-size: 3.5rem;
+            color: var(--primary);
+            animation: spin 6s linear infinite;
+            text-shadow: 0 0 15px var(--primary);
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        h1 {
+            font-family: var(--font-head);
+            font-size: 3.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: linear-gradient(90deg, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+        }
+
+        /* Glitch Effect */
+        .glitch-text {
+            position: relative;
+        }
+
+        .glitch-text::before,
+        .glitch-text::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-color);
+        }
+
+        .glitch-text::before {
+            left: 2px;
+            text-shadow: -1px 0 #ff00c1;
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim 3s infinite linear alternate-reverse;
+            -webkit-text-fill-color: var(--text-main);
+        }
+
+        .glitch-text::after {
+            left: -2px;
+            text-shadow: -1px 0 #00fff9;
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim 2s infinite linear alternate-reverse;
+            -webkit-text-fill-color: var(--text-main);
+        }
+
+        @keyframes glitch-anim {
+            0% {
+                clip: rect(10px, 9999px, 30px, 0);
+                transform: skew(0.5deg);
+            }
+
+            20% {
+                clip: rect(80px, 9999px, 100px, 0);
+                transform: skew(-0.5deg);
+            }
+
+            40% {
+                clip: rect(40px, 9999px, 60px, 0);
+                transform: skew(0.5deg);
+            }
+
+            60% {
+                clip: rect(20px, 9999px, 10px, 0);
+                transform: skew(0);
+            }
+
+            80% {
+                clip: rect(60px, 9999px, 50px, 0);
+                transform: skew(-0.5deg);
+            }
+
+            100% {
+                clip: rect(90px, 9999px, 80px, 0);
+                transform: skew(0);
+            }
+        }
+
+        .input-group {
+            position: relative;
+            max-width: 600px;
+            margin: 2rem auto;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1rem;
+            border: 1px solid var(--primary);
+            box-shadow: 0 0 15px var(--primary-dim);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-label {
+            color: var(--primary);
+            font-family: var(--font-head);
+            margin-right: 1rem;
+            font-size: 1.1rem;
+        }
+
+        #targetInput {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-family: var(--font-mono);
+            font-size: 1.2rem;
+            width: 100%;
+            outline: none;
+        }
+
+        #targetInput::placeholder {
+            color: #444;
+        }
+
+        .pro-badge {
+            position: absolute;
+            top: -10px;
+            right: 20px;
+            background: var(--accent);
+            color: white;
+            padding: 2px 8px;
+            font-size: 0.7rem;
+            font-family: var(--font-head);
+            border-radius: 2px;
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        /* --- Tool Cards --- */
+        .phase-section {
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-left: 2px solid var(--primary);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            transition: transform 0.3s;
+        }
+
+        .phase-section:hover {
+            border-left-color: var(--accent);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .phase-title {
+            font-family: var(--font-head);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .phase-icon {
+            color: var(--primary);
+        }
+
+        /* --- Visual Workflow --- */
+        .workflow-diagram {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .flow-node {
+            background: #111;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            position: relative;
+        }
+
+        .flow-arrow {
+            color: #555;
+            font-size: 1.2rem;
+        }
+
+        /* --- Terminal Window --- */
+        .terminal {
+            background: #080808;
+            border: 1px solid #222;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 1.5rem;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+        }
+
+        .terminal-header {
+            background: #111;
+            padding: 8px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #222;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .red {
+            background: #ff5f56;
+        }
+
+        .yellow {
+            background: #ffbd2e;
+        }
+
+        .green {
+            background: #27c93f;
+        }
+
+        .terminal-body {
+            padding: 1.5rem;
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        .cmd-block {
+            margin-bottom: 1.2rem;
+        }
+
+        .comment {
+            color: #555;
+            display: block;
+            margin-bottom: 4px;
+            font-style: italic;
+        }
+
+        .prompt {
+            color: var(--accent);
+            margin-right: 8px;
+            user-select: none;
+        }
+
+        .command-text {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        /* Dynamic Highlight */
+        .target-var {
+            color: var(--primary);
+            text-shadow: 0 0 5px var(--primary-dim);
+            transition: all 0.2s;
+        }
+
+        /* --- Arsenal Grid --- */
+        .tips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .tip-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid #222;
+            padding: 1.5rem;
+            border-radius: 6px;
+            border-top: 2px solid var(--accent);
+            transition: 0.3s;
+        }
+
+        .tip-card:hover {
+            transform: translateY(-5px);
+            border-top-color: var(--primary);
+        }
+
+        .tip-card h3 {
+            font-family: var(--font-head);
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+            font-size: 1rem;
+        }
+
+        .tip-card p {
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+
+        /* --- Buttons --- */
+        .action-btn {
+            background: var(--primary-dim);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 0.5rem 1rem;
+            font-family: var(--font-head);
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: 0.2s;
+        }
+
+        .action-btn:hover {
+            background: var(--primary);
+            color: #000;
+        }
+
+        .download-fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--accent);
+            color: #fff;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 0 20px var(--accent);
+            cursor: pointer;
+            z-index: 100;
+            border: none;
+            transition: transform 0.3s;
+        }
+
+        .download-fab:hover {
+            transform: scale(1.1) rotate(15deg);
+        }
+
+        .tooltip {
+            position: absolute;
+            right: 70px;
+            background: #111;
+            padding: 5px 10px;
+            border-radius: 4px;
+            border: 1px solid #333;
+            width: max-content;
+            font-size: 0.8rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .download-fab:hover .tooltip {
+            opacity: 1;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 5rem;
+            text-align: center;
+            padding-bottom: 2rem;
+            border-top: 1px solid #222;
+            padding-top: 2rem;
+        }
+
+        .social-link {
+            color: #666;
+            margin: 0 10px;
+            font-size: 1.2rem;
+            transition: 0.2s;
+        }
+
+        .social-link:hover {
+            color: var(--primary);
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 15px var(--accent-dim);
+            }
+
+            50% {
+                transform: scale(1.02);
+                box-shadow: 0 0 30px var(--accent);
+            }
+
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 15px var(--accent-dim);
+            }
+        }
+
+        .hype-container {
+            position: relative;
+            overflow: hidden;
+            border: 2px solid var(--accent);
+            background: linear-gradient(180deg, rgba(13, 13, 13, 0.9) 0%, rgba(20, 20, 20, 0.95) 100%);
+            padding: 3rem 2rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+        }
+
+        .scanner-line {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            animation: scan 3s linear infinite;
+            z-index: 5;
+        }
+
+        @keyframes scan {
+            0% {
+                top: 0;
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                top: 100%;
+                opacity: 0;
+            }
+        }
+
+        .bat-icon {
+            font-size: 5rem;
+            color: var(--accent);
+            filter: drop-shadow(0 0 20px var(--accent));
+            animation: float 4s ease-in-out infinite;
+            margin-bottom: 1.5rem;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0);
+            }
+
+            50% {
+                transform: translateY(-20px) rotate(5deg);
+            }
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-family: var(--font-head);
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary-dim);
+            font-weight: 900;
+        }
+
+        .hype-tag {
+            background: var(--accent);
+            color: #fff;
+            padding: 4px 12px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            font-family: var(--font-head);
+            border-radius: 20px;
+            margin-bottom: 1rem;
+            display: inline-block;
+            letter-spacing: 2px;
+            box-shadow: 0 0 15px var(--accent);
+        }
+
+        .terminal-loader {
+            font-family: var(--font-mono);
+            color: var(--primary);
+            font-size: 0.9rem;
+            margin-top: 1.5rem;
+            opacity: 0.7;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 15px;
+            background: var(--primary);
+            animation: blink 1s step-end infinite;
+            margin-left: 5px;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="grid-bg"></div>
+    <canvas id="matrix-canvas"></canvas>
+
+    <button class="download-fab" onclick="downloadScript()">
+        <i class="fas fa-file-code"></i>
+        <div class="tooltip">Generate & Download .sh Script</div>
+    </button>
+
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <i class="fas fa-biohazard spin-icon"></i>
+                <h1 class="glitch-text" data-text="MASS API HUNT">MASS API HUNT</h1>
+            </div>
+
+            <p style="color: var(--text-muted); letter-spacing: 1px;">ADVANCED JS RECONNAISSANCE FRAMEWORK</p>
+
+            <div class="input-group">
+                <span class="pro-badge">v3.0 ELITE</span>
+                <span class="input-label">TARGET ></span>
+                <input type="text" id="targetInput" placeholder="cybertechajju.com" value="cybertechajju.com"
+                    oninput="updateTarget()">
+                <i class="fas fa-crosshairs highlight" style="color: var(--accent);"></i>
+            </div>
+        </header>
+
+        <!-- Phase 1: Setup & Manual -->
+        <div class="phase-section">
+            <div class="phase-title">
+                <i class="fas fa-satellite-dish phase-icon"></i> 01. INITIAL VECTOR
+            </div>
+            <p style="color:#aaa; margin-bottom:1rem;">Manual inspection combined with automated browser extensions.
+                Don't be lazy, check the source.</p>
+
+            <div class="tips-grid">
+                <div class="tip-card">
+                    <h3><i class="fas fa-eye"></i> Manual Check</h3>
+                    <p>Press <code>Ctrl+U</code>. Search for <code>.js</code> manually before running any tools.
+                        Sometimes the juiciest file is right there in the head tag.</p>
+                </div>
+                <div class="tip-card">
+                    <h3><i class="fas fa-puzzle-piece"></i> Browser Extensions</h3>
+                    <p>Use <strong>LazyEgg</strong> or <strong>EndPointer</strong>. They automate the extraction of JS
+                        URLs while you browse normally.</p>
+                </div>
+                <div class="tip-card">
+                    <h3><i class="fas fa-mobile-alt"></i> Mobile Recon</h3>
+                    <p>Change User-Agent to Mobile. Some sites load different JS bundles (e.g., `mobile-app.js`).</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Automated Methodology Visualization -->
+        <div class="phase-section" style="border-left-color: var(--accent);">
+            <div class="phase-title">
+                <i class="fas fa-project-diagram phase-icon" style="color: var(--accent);"></i> THE PIPELINE
+            </div>
+            <div class="workflow-diagram">
+                <div class="flow-node">SUBDOMAINS</div>
+                <div class="flow-arrow"><i class="fas fa-arrow-right"></i></div>
+                <div class="flow-node">GATHER URLS</div>
+                <div class="flow-arrow"><i class="fas fa-arrow-right"></i></div>
+                <div class="flow-node">FILTER JS</div>
+                <div class="flow-arrow"><i class="fas fa-arrow-right"></i></div>
+                <div class="flow-node">SCAN SECRETS</div>
+                <div class="flow-arrow"><i class="fas fa-arrow-right"></i></div>
+                <div class="flow-node">PROFIT $$$</div>
+            </div>
+        </div>
+
+        <!-- Phase 2: Mass Recon -->
+        <div class="phase-section">
+            <div class="phase-title">
+                <i class="fas fa-network-wired phase-icon"></i> 02. MASS HARVESTING
+            </div>
+            <p>Gathering every single JS file from Live subdomains and Archived history.</p>
+
+            <div class="terminal">
+                <div class="terminal-header">
+                    <span style="color:#666; font-size:0.8rem;">root@kali:~/recon</span>
+                    <button class="action-btn" onclick="copyToClipboard('harvestCmd')">COPY</button>
+                </div>
+                <div class="terminal-body" id="harvestCmd">
+                    <div class="cmd-block">
+                        <span class="comment"># 1. Enumerate Subdomains</span>
+                        <span class="prompt">$</span><span class="command-text">subfinder -d <span
+                                class="target-var">cybertechajju.com</span> -all -recursive | sort -u > subs.txt</span>
+                    </div>
+                    <div class="cmd-block">
+                        <span class="comment"># 2. Gather URLs (Live + Archive)</span>
+                        <span class="prompt">$</span><span class="command-text">cat subs.txt | httpx-toolkit -silent |
+                            anew alive.txt</span><br>
+                        <span class="prompt">$</span><span class="command-text">cat subs.txt | waybackurls -no-subs |
+                            anew wayback.txt</span><br>
+                        <span class="prompt">$</span><span class="command-text">cat subs.txt |
+                            /home/ajju/tools/jstool/gau --threads 5 | anew
+                            gau.txt</span>
+                    </div>
+                    <div class="cmd-block">
+                        <span class="comment"># 3. Deep Crawl (Katana & SubJS)</span>
+                        <span class="prompt">$</span><span class="command-text">cat subs.txt | katana -d 5 -jc -c 50 -o
+                            katana.txt</span><br>
+                        <span class="prompt">$</span><span class="command-text">cat alive.txt | subjs | anew
+                            subjs.txt</span>
+                    </div>
+                    <div class="cmd-block">
+                        <span class="comment"># 4. Extract Javascript Only</span>
+                        <span class="prompt">$</span><span class="command-text">cat *.txt | grep -E "\.js$" | sort -u |
+                            tee all_js.txt</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phase 3: Analysis -->
+        <div class="phase-section">
+            <div class="phase-title">
+                <i class="fas fa-radiation phase-icon" style="color:var(--accent);"></i> 03. VULNERABILITY SCANNING
+            </div>
+            <p>Using Nuclei custom templates and regex pattern matching to find secrets.</p>
+
+            <div class="terminal">
+                <div class="terminal-header">
+                    <span style="color:#666; font-size:0.8rem;">root@kali:~/recon/scan</span>
+                    <button class="action-btn" onclick="copyToClipboard('scanCmd')">COPY</button>
+                </div>
+                <div class="terminal-body" id="scanCmd">
+                    <div class="cmd-block">
+                        <span class="comment"># 1. Filter Live JS & Scan (Prevents 404s)</span>
+                        <span class="prompt">$</span><span class="command-text">cat all_js.txt | httpx-toolkit -silent
+                            -mc 200 | mantra</span><br>
+                        <span class="prompt">$</span><span class="command-text">cat all_js.txt | httpx-toolkit -silent
+                            -mc 200 | jsluice secrets</span>
+                    </div>
+                    <div class="cmd-block">
+                        <span class="comment"># 2. Nuclei (Custom Templates)</span>
+                        <span class="prompt">$</span><span class="command-text">cat all_js.txt | nuclei -t
+                            /home/ajju/Downloads/credentials-disclosure-all.yaml -c 30</span>
+                    </div>
+                    <div class="cmd-block">
+                        <span class="comment"># 3. Off-the-Shelf Tools</span>
+                        <span class="prompt">$</span><span class="command-text">cat all_js.txt | cariddi -s -e -err
+                            -info</span><br>
+                        <span class="prompt">$</span><span class="command-text">cat all_js.txt | jsleak -s -l -k</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phase 4: Python Deep Analysis -->
+        <div class="phase-section">
+            <div class="phase-title">
+                <i class="fas fa-python phase-icon" style="color:#ffbd2e;"></i> 04. PYTHON DEEP SCANNERS
+            </div>
+            <p>Heavy logic-based analysis using Python tools (SecretFinder, LinkFinder, etc.).</p>
+
+            <div class="terminal">
+                <div class="terminal-header">
+                    <span style="color:#666; font-size:0.8rem;">root@kali:~/recon/python</span>
+                    <button class="action-btn" onclick="copyToClipboard('pythonCmd')">COPY</button>
+                </div>
+                <div class="terminal-body" id="pythonCmd">
+                    <div class="cmd-block">
+                        <span class="comment"># 1. SecretFinder (The Classic)</span>
+                        <span class="prompt">$</span><span class="command-text">cat all_js.txt | while read url; do
+                            python3 /home/ajju/tools/jstool/SecretFinder/SecretFinder.py -i $url -o cli; done</span>
+                    </div>
+                    <div class="cmd-block">
+                        <span class="comment"># 2. LinkFinder (Endpoint Extraction)</span>
+                        <span class="prompt">$</span><span class="command-text">cat all_js.txt | xargs -I % python3
+                            /home/ajju/tools/jstool/LinkFinder/linkfinder.py -i % -o cli</span>
+                    </div>
+                    <div class="cmd-block">
+                        <span class="comment"># 3. LazyEgg (Extra Intel)</span>
+                        <span class="prompt">$</span><span class="command-text">cat all_js.txt | xargs -I % python3
+                            /home/ajju/tools/jstool/lazyegg/lazyegg.py %</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phase 5: Offline Analysis -->
+        <div class="phase-section">
+            <div class="phase-title">
+                <i class="fas fa-hdd phase-icon"></i> 05. OFFLINE ANALYSIS
+            </div>
+            <p>Download all JS files for local, deep-dive analysis with grep or other static analysis tools.</p>
+
+            <div class="terminal">
+                <div class="terminal-header">
+                    <span style="color:#666; font-size:0.8rem;">root@kali:~/recon/offline</span>
+                    <button class="action-btn" onclick="copyToClipboard('offlineCmd')">COPY</button>
+                </div>
+                <div class="terminal-body" id="offlineCmd">
+                    <div class="cmd-block">
+                        <span class="comment"># 1. Download All JS Files</span>
+                        <span class="prompt">$</span><span class="command-text">mkdir -p js_files && wget -i all_js.txt
+                            -P js_files/</span>
+                    </div>
+                    <div class="cmd-block">
+                        <span class="comment"># 2. Grep for Common Secrets (The Gold Mine)</span>
+                        <span class="prompt">$</span><span class="command-text">grep -r -E
+                            "aws_access_key|api_key|jwt|slack_token|firebase|password|secret|token" js_files/</span>
+                    </div>
+                    <div class="cmd-block">
+                        <span class="comment"># 3. Grep for Endpoints (e.g., /api/v1/)</span>
+                        <span class="prompt">$</span><span class="command-text">grep -r -E "/api/v[0-9]|/v[0-9]/api"
+                            js_files/</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Arsenal Section -->
+        <div class="phase-section">
+            <div class="phase-title">
+                <i class="fas fa-toolbox phase-icon"></i> THE COMPLETE ARSENAL
+            </div>
+            <div class="tips-grid">
+                <div class="tip-card" style="border-top-color: var(--primary);">
+                    <h3><i class="fas fa-spider"></i> Katana</h3>
+                    <p>Next-gen crawler. Much better than Hakrawler for finding hidden JS.</p>
+                </div>
+                <div class="tip-card" style="border-top-color: #ffbd2e;">
+                    <h3><i class="fas fa-crosshairs"></i> SubJS</h3>
+                    <p>Specifically designed to extract javascript links from source code.</p>
+                </div>
+                <div class="tip-card" style="border-top-color: var(--primary);">
+                    <h3><i class="fas fa-file-code"></i> JSLuice</h3>
+                    <p>Extracts endpoints and secrets using parsing, not just regex.</p>
+                </div>
+                <div class="tip-card" style="border-top-color: #ff5f56;">
+                    <h3><i class="fas fa-link"></i> LinkFinder</h3>
+                    <p>The classic Python tool for finding hidden endpoints in JS files.</p>
+                </div>
+                <div class="tip-card" style="border-top-color: #27c93f;">
+                    <h3><i class="fas fa-globe"></i> Httpx</h3>
+                    <p>Probe domains to filter out dead links before scanning.</p>
+                </div>
+                <div class="tip-card" style="border-top-color: var(--primary);">
+                    <h3><i class="fas fa-history"></i> Wayback/GAU</h3>
+                    <p>Finds "Zombie" JS files that developers forgot to delete.</p>
+                </div>
+                <div class="tip-card" style="border-top-color: #fff;">
+                    <h3><i class="fas fa-bug"></i> Hakrawler</h3>
+                    <p>Fast, simple Go-based crawler for quick discovery.</p>
+                </div>
+                <div class="tip-card" style="border-top-color: var(--accent);">
+                    <h3><i class="fas fa-key"></i> SecretFinder</h3>
+                    <p>Regex-based secret scanner for JS files.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Burp Suite Section -->
+        <div class="phase-section" style="border-left-color: #ff6b35;">
+            <div class="phase-title">
+                <i class="fas fa-dragon phase-icon" style="color:#ff6b35;"></i> 06. BURP SUITE WORKFLOW
+            </div>
+            <p>How to hunt for secrets using Burp Suite's powerful interception capabilities.</p>
+
+            <div class="tips-grid">
+                <div class="tip-card" style="border-top-color: #ff6b35;">
+                    <h3><i class="fas fa-plug"></i> Step 1: Setup</h3>
+                    <p>Configure browser proxy (127.0.0.1:8080). Install Burp CA certificate for HTTPS.</p>
+                </div>
+                <div class="tip-card" style="border-top-color: #ff6b35;">
+                    <h3><i class="fas fa-sitemap"></i> Step 2: Spider</h3>
+                    <p>Browse target normally. Burp captures all requests including JS files automatically.</p>
+                </div>
+                <div class="tip-card" style="border-top-color: #ff6b35;">
+                    <h3><i class="fas fa-search"></i> Step 3: Search</h3>
+                    <p>Go to Target → Site Map → Right Click → Search. Use keywords: api_key, secret, token, password.
+                    </p>
+                </div>
+                <div class="tip-card" style="border-top-color: #ff6b35;">
+                    <h3><i class="fas fa-download"></i> Step 4: Export</h3>
+                    <p>Filter for .js files → Right Click → Save selected items. Analyze offline with grep.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Writing Section -->
+        <div class="phase-section" style="border-left-color: #00bcd4;">
+            <div class="phase-title">
+                <i class="fas fa-file-alt phase-icon" style="color:#00bcd4;"></i> 07. PROFESSIONAL REPORTING
+            </div>
+            <p>How to create a bug bounty report that gets PAID.</p>
+
+            <div class="tips-grid">
+                <div class="tip-card" style="border-top-color: #00bcd4;">
+                    <h3><i class="fas fa-heading"></i> Title</h3>
+                    <p>"[Severity] Secret Type Exposed in JS File at domain.com" - Be specific!</p>
+                </div>
+                <div class="tip-card" style="border-top-color: #00bcd4;">
+                    <h3><i class="fas fa-list-ol"></i> Steps to Reproduce</h3>
+                    <p>1. Navigate to URL 2. View source/request 3. Find the secret. Clear, numbered steps.</p>
+                </div>
+                <div class="tip-card" style="border-top-color: #00bcd4;">
+                    <h3><i class="fas fa-skull-crossbones"></i> Impact</h3>
+                    <p>Explain what an attacker can DO with this secret. Data access? Account takeover? Financial loss?
+                    </p>
+                </div>
+                <div class="tip-card" style="border-top-color: #00bcd4;">
+                    <h3><i class="fas fa-check-double"></i> Proof of Concept</h3>
+                    <p>Show the secret is VALID. Use keyhacks or make a harmless API call to prove it works.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PART 3 COMING SOON - Mystery Section -->
+        <div class="hype-container">
+            <div class="scanner-line"></div>
+            <div style="text-align: center; position: relative; z-index: 10;">
+                <div class="hype-tag">Classified Intel</div>
+                <div class="bat-icon">🦇</div>
+
+                <h2 class="glitch-text" data-text="NIGHTCRAWLER v2.0"
+                    style="font-family: var(--font-head); font-size: 3rem; color: #fff; margin-bottom: 1rem; letter-spacing: 5px;">
+                    NIGHTCRAWLER v2.0
+                </h2>
+
+                <p style="color: #ccc; font-size: 1.2rem; max-width: 700px; margin: 0 auto 2rem; line-height: 1.8;">
+                    The <strong style="color: var(--primary);">Ultimate JS Weapon</strong> is coming.
+                    No more running 10 different tools. Experience the power of <span style="color: var(--accent);">Deep
+                        Logic Analysis</span> combined with <span style="color: var(--primary);">Mass Subdomain
+                        Discovery</span>.
+                </p>
+
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin: 3rem 0;">
+                    <div class="tip-card"
+                        style="border-top: 3px solid var(--primary); background: rgba(0,255,65,0.05);">
+                        <div class="stat-value">200+</div>
+                        <div style="color: #888; letter-spacing: 2px; margin-top: 10px;">VALIDATED PATTERNS</div>
+                    </div>
+                    <div class="tip-card"
+                        style="border-top: 3px solid var(--accent); background: rgba(211,0,197,0.05);">
+                        <div class="stat-value">50+</div>
+                        <div style="color: #888; letter-spacing: 2px; margin-top: 10px;">THREADS BY DEFAULT</div>
+                    </div>
+                    <div class="tip-card" style="border-top: 3px solid #fff; background: rgba(255,255,255,0.05);">
+                        <div class="stat-value">1-CLICK</div>
+                        <div style="color: #888; letter-spacing: 2px; margin-top: 10px;">FULL RECON ENGINE</div>
+                    </div>
+                </div>
+
+                <div class="terminal-loader">
+                    [SYSTEM] :: Initializing NightCrawler Core... <br>
+                    [MODULE] :: Subfinder Integration [OK]<br>
+                    [MODULE] :: Pattern Validator v2 [OK]<br>
+                    [STATUS] :: Awaiting Deployment... <span class="cursor"></span>
+                </div>
+
+                <p
+                    style="color: var(--accent); margin-top: 3rem; font-weight: bold; letter-spacing: 3px; font-family: var(--font-head);">
+                    ONLY FOR CYBERTECH AJJU COMMUNITY
+                </p>
+            </div>
+        </div>
+
+        <footer>
+            <div style="font-family: var(--font-head); font-size: 1.5rem; color: #fff; margin-bottom: 10px;">
+                CYBERTECH AJJU
+            </div>
+            <div style="color: #666; font-size: 0.9rem; letter-spacing: 2px; margin-bottom: 1rem;">
+                KEEP LEARNING <span style="color:var(--primary)">//</span> KEEP HACKING
+            </div>
+            <div>
+                <a href="https://github.com/CyberTechAjju" target="_blank" class="social-link"><i
+                        class="fab fa-github"></i></a>
+                <a href="https://www.youtube.com/@CyberTechAjju" target="_blank" class="social-link"><i
+                        class="fab fa-youtube"></i></a>
+                <a href="https://twitter.com/CyberTechAjju" target="_blank" class="social-link"><i
+                        class="fab fa-twitter"></i></a>
+                <a href="https://www.instagram.com/CyberTechAjju" target="_blank" class="social-link"><i
+                        class="fab fa-instagram"></i></a>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- Script Logic -->
+    <script>
+        // Update Target Function
+        function updateTarget() {
+            const input = document.getElementById('targetInput');
+            const target = input.value || 'cybertechajju.com';
+
+            document.querySelectorAll('.target-var').forEach(el => {
+                el.innerText = target;
+            });
+        }
+
+        // Copy to Clipboard
+        function copyToClipboard(elementId) {
+            const node = document.getElementById(elementId);
+            const text = node.innerText.replace(/^\$\s*/gm, '').replace(/COPY/g, '').trim();
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Commands copied!');
+            });
+        }
+
+        // Generate Bash Script
+        function downloadScript() {
+            const target = document.getElementById('targetInput').value || 'target';
+            const cleanTarget = target.replace(/[^a-zA-Z0-9.-]/g, '');
+
+            const scriptContent = `#!/bin/bash
+# Auto-Generated Recon Script by CyberTechAjju
+# Target: ${target}
+
+TARGET="${target}"
+echo "[+] Starting Recon on $TARGET"
+
+mkdir -p $TARGET_recon
+cd $TARGET_recon
+
+echo "[+] Enumerating Subdomains..."
+subfinder -d $TARGET -all -recursive | sort -u > subs.txt
+
+echo "[+] Gathering URLs..."
+cat subs.txt | httpx-toolkit -silent | anew alive.txt
+cat subs.txt | waybackurls -no-subs | anew wayback.txt
+cat subs.txt | /home/ajju/tools/jstool/gau --threads 5 | anew gau.txt
+
+echo "[+] Crawling..."
+cat subs.txt | katana -d 5 -jc -c 50 -o katana.txt
+cat alive.txt | subjs | anew subjs.txt
+
+echo "[+] Extracting JS Files..."
+cat *.txt | grep -E "\.js$" | sort -u | tee all_js.txt
+
+echo "[+] Scanning for Secrets (Live Only)..."
+cat all_js.txt | httpx-toolkit -silent -mc 200 | mantra
+cat all_js.txt | httpx-toolkit -silent -mc 200 | jsluice secrets
+cat all_js.txt | nuclei -t /home/ajju/Downloads/credentials-disclosure-all.yaml -c 30
+cat all_js.txt | cariddi -s -e -err -info
+cat all_js.txt | jsleak -s -l -k
+
+echo "[+] Running Python Scanners (SecretFinder, LinkFinder)..."
+# SecretFinder Loop
+cat all_js.txt | while read url; do 
+    python3 /home/ajju/tools/jstool/SecretFinder/SecretFinder.py -i $url -o cli
+done
+
+# LinkFinder Loop
+cat all_js.txt | while read url; do
+    python3 /home/ajju/tools/jstool/LinkFinder/linkfinder.py -i $url -o cli
+done
+
+echo "[+] Downloading for Offline Analysis..."
+mkdir -p js_files
+wget -i all_js.txt -P js_files/
+
+echo "[+] Recon Complete. Check output files in $TARGET_recon."
+`;
+
+            const blob = new Blob([scriptContent], { type: 'text/x-sh' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `recon_${cleanTarget}.sh`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Matrix Rain
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const columns = Math.floor(canvas.width / 20);
+        const drops = Array(columns).fill(1);
+        const chars = '01ABCDEF';
+
+        function draw() {
+            ctx.fillStyle = 'rgba(3, 3, 3, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#0F0';
+            ctx.font = '15px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = chars[Math.floor(Math.random() * chars.length)];
+                ctx.fillText(text, i * 20, drops[i] * 20);
+                if (drops[i] * 20 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+        }
+        setInterval(draw, 50);
+
+        // Initial Call
+        setTimeout(updateTarget, 100);
+    </script>
+</body>
+
+</html>
